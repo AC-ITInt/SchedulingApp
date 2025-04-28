@@ -1,280 +1,414 @@
 import React, { Component } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import {
   ExpandableCalendar,
-  TimelineEventProps,
   TimelineList,
   CalendarProvider,
-  TimelineProps,
   CalendarUtils,
 } from 'react-native-calendars';
 
-// Define getDate and timelineEvents directly in this file
 const EVENT_COLOR = '#e6add8';
-const today = new Date();
-export const getDate = (offset = 0) =>
-  CalendarUtils.getCalendarDateString(new Date().setDate(today.getDate() + offset));
+const INITIAL_TIME = { hour: 9, minutes: 0 };
 
-export const timelineEvents: TimelineEventProps[] = [
-  {
-    start: `${getDate(-1)} 09:20:00`,
-    end: `${getDate(-1)} 12:00:00`,
-    title: 'Merge Request to React Native Calendars',
-    summary: 'Merge Timeline Calendar to React Native Calendars',
-  },
-  {
-    start: `${getDate()} 01:15:00`,
-    end: `${getDate()} 02:30:00`,
-    title: 'Meeting A',
-    summary: 'Summary for meeting A',
-    color: EVENT_COLOR,
-  },
-  {
-    start: `${getDate()} 01:30:00`,
-    end: `${getDate()} 02:30:00`,
-    title: 'Meeting B',
-    summary: 'Summary for meeting B',
-    color: EVENT_COLOR,
-  },
-  {
-    start: `${getDate()} 01:45:00`,
-    end: `${getDate()} 02:45:00`,
-    title: 'Meeting C',
-    summary: 'Summary for meeting C',
-    color: EVENT_COLOR,
-  },
-  {
-    start: `${getDate()} 02:40:00`,
-    end: `${getDate()} 03:10:00`,
-    title: 'Meeting D',
-    summary: 'Summary for meeting D',
-    color: EVENT_COLOR,
-  },
-  {
-    start: `${getDate()} 02:50:00`,
-    end: `${getDate()} 03:20:00`,
-    title: 'Meeting E',
-    summary: 'Summary for meeting E',
-    color: EVENT_COLOR,
-  },
-  {
-    start: `${getDate()} 04:30:00`,
-    end: `${getDate()} 05:30:00`,
-    title: 'Meeting F',
-    summary: 'Summary for meeting F',
-    color: EVENT_COLOR,
-  },
-  {
-    start: `${getDate(1)} 00:30:00`,
-    end: `${getDate(1)} 01:30:00`,
-    title: 'Visit Grand Mother',
-    summary: 'Visit Grand Mother and bring some fruits.',
-    color: 'lightblue',
-  },
-  {
-    start: `${getDate(1)} 02:30:00`,
-    end: `${getDate(1)} 03:20:00`,
-    title: 'Meeting with Prof. Behjet Zuhaira',
-    summary: 'Meeting with Prof. Behjet at 130 in her office.',
-    color: EVENT_COLOR,
-  },
-  {
-    start: `${getDate(1)} 04:10:00`,
-    end: `${getDate(1)} 04:40:00`,
-    title: 'Tea Time with Dr. Hasan',
-    summary: 'Tea Time with Dr. Hasan, Talk about Project',
-  },
-  {
-    start: `${getDate(1)} 01:05:00`,
-    end: `${getDate(1)} 01:35:00`,
-    title: 'Dr. Mariana Joseph',
-    summary: '3412 Piedmont Rd NE, GA 3032',
-  },
-  {
-    start: `${getDate(1)} 14:30:00`,
-    end: `${getDate(1)} 16:30:00`,
-    title: 'Meeting Some Friends in ARMED',
-    summary: 'Arsalan, Hasnaat, Talha, Waleed, Bilal',
-    color: 'pink',
-  },
-  {
-    start: `${getDate(2)} 01:40:00`,
-    end: `${getDate(2)} 02:25:00`,
-    title: 'Meet Sir Khurram Iqbal',
-    summary: 'Computer Science Dept. Comsats Islamabad',
-    color: 'orange',
-  },
-  {
-    start: `${getDate(2)} 04:10:00`,
-    end: `${getDate(2)} 04:40:00`,
-    title: 'Tea Time with Colleagues',
-    summary: 'WeRplay',
-  },
-  {
-    start: `${getDate(2)} 00:45:00`,
-    end: `${getDate(2)} 01:45:00`,
-    title: 'Lets Play Apex Legends',
-    summary: 'with Boys at Work',
-  },
-  {
-    start: `${getDate(2)} 11:30:00`,
-    end: `${getDate(2)} 12:30:00`,
-    title: 'Dr. Mariana Joseph',
-    summary: '3412 Piedmont Rd NE, GA 3032',
-  },
-  {
-    start: `${getDate(4)} 12:10:00`,
-    end: `${getDate(4)} 13:45:00`,
-    title: 'Merge Request to React Native Calendars',
-    summary: 'Merge Timeline Calendar to React Native Calendars',
-  },
+// Helper to get formatted date
+const getDate = (offset = 0) => {
+  const today = new Date();
+  return CalendarUtils.getCalendarDateString(new Date(today.setDate(today.getDate() + offset)));
+};
+
+// Sample events
+const timelineEvents = [
+  { start: `${getDate(-1)} 09:20:00`, end: `${getDate(-1)} 13:00:00`, title: 'Merge Request', summary: 'React Native Calendars' },
+  { start: `${getDate()} 09:15:00`, end: `${getDate()} 10:30:00`, title: 'Meeting A', summary: 'Summary for meeting A', color: EVENT_COLOR },
+  { start: `${getDate()} 09:30:00`, end: `${getDate()} 10:30:00`, title: 'Meeting B', summary: 'Summary for meeting B', color: EVENT_COLOR },
+  { start: `${getDate()} 10:40:00`, end: `${getDate()} 11:10:00`, title: 'Meeting D', summary: 'Summary for meeting D', color: EVENT_COLOR },
 ];
 
-const INITIAL_TIME = { hour: 9, minutes: 0 };
-const EVENTS: TimelineEventProps[] = timelineEvents;
-
-// Helper function to group events by date
-const groupBy = (array: TimelineEventProps[], keyFn: (item: TimelineEventProps) => string) => {
-  return array.reduce((result, item) => {
-    const key = keyFn(item);
-    if (!result[key]) {
-      result[key] = [];
-    }
-    result[key].push(item);
-    return result;
-  }, {} as { [key: string]: TimelineEventProps[] });
-};
-
-// Helper function to filter events
-const filter = (array: TimelineEventProps[], predicate: (item: TimelineEventProps) => boolean) => {
-  return array.filter(predicate);
-};
-
-// Helper function to find an event
-const find = (array: TimelineEventProps[], predicate: Partial<TimelineEventProps>) => {
-  return array.find((item) =>
-    Object.keys(predicate).every((key) => item[key as keyof TimelineEventProps] === predicate[key as keyof TimelineEventProps])
-  );
-};
+// Group events by date
+const groupByDate = (events) =>
+  events.reduce((acc, event) => {
+    const date = event.start.split(' ')[0];
+    acc[date] = acc[date] ? [...acc[date], event] : [event];
+    return acc;
+  }, {});
 
 export default class TimelineCalendarScreen extends Component {
   state = {
     currentDate: getDate(),
-    events: EVENTS,
-    eventsByDate: groupBy(EVENTS, (e) => CalendarUtils.getCalendarDateString(e.start)),
+    eventsByDate: groupByDate(timelineEvents),
+    isModalVisible: false,
+    draftEvent: null,
+    eventTitle: '',
+    eventSummary: '',
+    selectedTime: new Date(),
+    showTimePicker: false,
+    selectedStartTime: new Date(),
+    selectedEndTime: new Date(),
+    startTimeSelected: true,
+    isEditModalVisible: false,
+    eventToEdit: null,
   };
 
-  marked = {
-    [`${getDate(-1)}`]: { marked: true },
-    [`${getDate()}`]: { marked: true },
-    [`${getDate(1)}`]: { marked: true },
-    [`${getDate(2)}`]: { marked: true },
-    [`${getDate(4)}`]: { marked: true },
+  markedDates = {
+    [getDate(-1)]: { marked: true },
+    [getDate()]: { marked: true },
+    [getDate(1)]: { marked: true },
   };
 
-  onDateChanged = (date: string, source: string) => {
-    console.log('TimelineCalendarScreen onDateChanged: ', date, source);
-    this.setState({ currentDate: date });
-  };
+  handleDateChange = (date) => this.setState({ currentDate: date });
 
-  onMonthChange = (month: any, updateSource: any) => {
-    console.log('TimelineCalendarScreen onMonthChange: ', month, updateSource);
-  };
-
-  createNewEvent: TimelineProps['onBackgroundLongPress'] = (timeString, timeObject) => {
+  createNewEvent = (timeString, timeObject) => {
     const { eventsByDate } = this.state;
-    const hourString = `${(timeObject.hour + 1).toString().padStart(2, '0')}`;
-    const minutesString = `${timeObject.minutes.toString().padStart(2, '0')}`;
-
     const newEvent = {
       id: 'draft',
-      start: `${timeString}`,
-      end: `${timeObject.date} ${hourString}:${minutesString}:00`,
+      start: timeString,
+      end: `${timeObject.date} ${String(timeObject.hour + 1).padStart(2, '0')}:${String(timeObject.minutes).padStart(2, '0')}:00`,
       title: 'New Event',
+      summary: 'New Event Summary',
       color: 'white',
     };
 
-    if (timeObject.date) {
-      if (eventsByDate[timeObject.date]) {
-        eventsByDate[timeObject.date] = [...eventsByDate[timeObject.date], newEvent];
-        this.setState({ eventsByDate });
-      } else {
-        eventsByDate[timeObject.date] = [newEvent];
-        this.setState({ eventsByDate: { ...eventsByDate } });
-      }
+    this.setState({
+      eventsByDate: {
+        ...eventsByDate,
+        [timeObject.date]: [...(eventsByDate[timeObject.date] || []), newEvent],
+      },
+      isModalVisible: true,
+      draftEvent: { date: timeObject.date, event: newEvent },
+    });
+  };
+
+  approveNewEvent = () => {
+    const { eventsByDate, draftEvent, eventTitle, eventSummary, selectedTime, selectedStartTime, selectedEndTime } = this.state;
+
+    if (draftEvent) {
+      const { date, event } = draftEvent;
+      const updatedEvent = {
+        ...event,
+        id: Date.now().toString(),
+        title: eventTitle || 'New Event',
+        summary: eventSummary || 'New Event Summary',
+        start: `${date} ${selectedStartTime.getHours().toString().padStart(2, '0')}:${selectedStartTime.getMinutes().toString().padStart(2, '0')}:00`,
+        end: `${date} ${String(selectedEndTime.getHours()).padStart(2, '0')}:${selectedEndTime.getMinutes().toString().padStart(2, '0')}:00`,
+        color: 'lightgreen',
+      };
+
+      this.setState({
+        eventsByDate: {
+          ...eventsByDate,
+          [date]: eventsByDate[date].map((e) => (e.id === 'draft' ? updatedEvent : e)),
+        },
+        isModalVisible: false,
+        draftEvent: null,
+        eventTitle: '',
+        eventSummary: '',
+        selectedTime: new Date(),
+      });
     }
   };
 
-  approveNewEvent: TimelineProps['onBackgroundLongPressOut'] = (_timeString, timeObject) => {
-    const { eventsByDate } = this.state;
+  cancelNewEvent = () => {
+    const { eventsByDate, draftEvent } = this.state;
 
-    Alert.prompt('New Event', 'Enter event title', [
-      {
-        text: 'Cancel',
-        onPress: () => {
-          if (timeObject.date) {
-            eventsByDate[timeObject.date] = filter(eventsByDate[timeObject.date], (e) => e.id !== 'draft');
-
-            this.setState({
-              eventsByDate,
-            });
-          }
+    if (draftEvent) {
+      const { date } = draftEvent;
+      this.setState({
+        eventsByDate: {
+          ...eventsByDate,
+          [date]: eventsByDate[date].filter((e) => e.id !== 'draft'),
         },
-      },
-      {
-        text: 'Create',
-        onPress: (eventTitle) => {
-          if (timeObject.date) {
-            const draftEvent = find(eventsByDate[timeObject.date], { id: 'draft' });
-            if (draftEvent) {
-              draftEvent.id = undefined;
-              draftEvent.title = eventTitle ?? 'New Event';
-              draftEvent.color = 'lightgreen';
-              eventsByDate[timeObject.date] = [...eventsByDate[timeObject.date]];
-
-              this.setState({
-                eventsByDate,
-              });
-            }
-          }
-        },
-      },
-    ]);
+        isModalVisible: false,
+        draftEvent: null,
+        eventTitle: '',
+        eventSummary: '',
+        selectedTime: new Date(),
+      });
+    }
   };
 
-  private timelineProps: Partial<TimelineProps> = {
-    format24h: false,
-    onBackgroundLongPress: this.createNewEvent,
-    onBackgroundLongPressOut: this.approveNewEvent,
-    unavailableHours: [{ start: 0, end: 6 }, { start: 22, end: 24 }],
-    overlapEventsSpacing: 8,
-    rightEdgeSpacing: 24,
+  updateEvent = () => {
+    const { eventsByDate, eventToEdit, eventTitle, eventSummary, selectedStartTime, selectedEndTime } = this.state;
+  
+    if (eventToEdit) {
+      const date = eventToEdit.start.split(' ')[0];
+      const updatedEvent = {
+        ...eventToEdit,
+        title: eventTitle,
+        summary: eventSummary,
+        start: `${date} ${selectedStartTime.getHours().toString().padStart(2, '0')}:${selectedStartTime.getMinutes().toString().padStart(2, '0')}:00`,
+        end: `${date} ${selectedEndTime.getHours().toString().padStart(2, '0')}:${selectedEndTime.getMinutes().toString().padStart(2, '0')}:00`,
+      };
+  
+      this.setState({
+        eventsByDate: {
+          ...eventsByDate,
+          [date]: eventsByDate[date].map((e) => (e.id === eventToEdit.id ? updatedEvent : e)),
+        },
+        isEditModalVisible: false,
+        eventToEdit: null,
+        eventTitle: '',
+        eventSummary: '',
+      });
+    }
+  };
+
+  removeEvent = () => {
+    const { eventsByDate, eventToEdit } = this.state;
+  
+    if (eventToEdit) {
+      const date = eventToEdit.start.split(' ')[0];
+      this.setState({
+        eventsByDate: {
+          ...eventsByDate,
+          [date]: eventsByDate[date].filter((e) => e.id !== eventToEdit.id),
+        },
+        isEditModalVisible: false,
+        eventToEdit: null,
+        eventTitle: '',
+        eventSummary: '',
+      });
+    }
+  };
+
+  openEditModal = (event) => {
+    this.setState({
+      isEditModalVisible: true,
+      eventToEdit: event,
+      eventTitle: event.title || '',
+      eventSummary: event.summary || '',
+      selectedStartTime: new Date(event.start),
+      selectedEndTime: new Date(event.end),
+    });
   };
 
   render() {
-    const { currentDate, eventsByDate } = this.state;
+    const { currentDate, eventsByDate, isModalVisible, eventTitle, eventSummary, selectedTime, selectedStartTime, selectedEndTime, startTimeSelected, showTimePicker, isEditModalVisible, eventToEdit } = this.state;
 
     return (
       <CalendarProvider
         date={currentDate}
-        onDateChanged={this.onDateChanged}
-        onMonthChange={this.onMonthChange}
+        onDateChanged={this.handleDateChange}
         showTodayButton
-        disabledOpacity={0.6}
       >
-        <ExpandableCalendar
-          firstDay={1}
-          markedDates={this.marked}
-          hideKnob={false}
-        />
+        <ExpandableCalendar firstDay={1} markedDates={this.markedDates} />
         <TimelineList
           events={eventsByDate}
-          timelineProps={this.timelineProps}
+          timelineProps={{
+            format24h: false,
+            onBackgroundLongPress: this.createNewEvent,
+            unavailableHours: [{ start: 0, end: 6 }, { start: 22, end: 24 }],
+            onEventPress: (event) => this.openEditModal(event),
+          }}
+          initialTime={INITIAL_TIME}
           showNowIndicator
           scrollToFirst
-          initialTime={INITIAL_TIME}
         />
+
+        {/* Modal for Event Creation */}
+        <Modal visible={isModalVisible} transparent animationType="slide">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>New Event</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Enter event title"
+                placeholderTextColor="#9ca3af"
+                value={eventTitle}
+                onChangeText={(text) => this.setState({ eventTitle: text })}
+              />
+              <TextInput
+                style={styles.textInput}
+                placeholder="Enter event summary"
+                placeholderTextColor="#9ca3af"
+                value={eventSummary}
+                onChangeText={(text) => this.setState({ eventSummary: text })}
+              />
+              <TouchableOpacity
+                style={styles.timeButton}
+                onPress={() => this.setState({ showTimePicker: !showTimePicker, startTimeSelected: true })}
+              >
+                <Text style={styles.timeButtonText}>
+                  Start Time: {selectedStartTime.getHours().toString().padStart(2, '0')}:
+                  {selectedStartTime.getMinutes().toString().padStart(2, '0')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.timeButton}
+                onPress={() => this.setState({ showTimePicker: !showTimePicker, startTimeSelected: false })}
+              >
+                <Text style={styles.timeButtonText}>
+                  End Time: {selectedEndTime.getHours().toString().padStart(2, '0')}:
+                  {selectedEndTime.getMinutes().toString().padStart(2, '0')}
+                </Text>
+              </TouchableOpacity>
+              {showTimePicker && (
+                <DateTimePicker
+                  value={ startTimeSelected ? selectedStartTime : selectedEndTime }
+                  mode="time"
+                  is24Hour={true}
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  textColor='#374151'
+                  onChange={(event, date) => {
+                    // this.setState({ showTimePicker: false });
+                    if (date) this.setState(startTimeSelected ? { selectedStartTime: date } : { selectedEndTime: date });
+                  }}
+                />
+              )}
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.cancelButton} onPress={this.cancelNewEvent}>
+                  <Text style={styles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.createButton} onPress={this.approveNewEvent}>
+                  <Text style={styles.buttonText}>Create</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+          
+        {/* Modal for Event Editing */}
+        <Modal visible={isEditModalVisible} transparent animationType="slide">
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Edit Event</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Enter event title"
+                placeholderTextColor="#9ca3af"
+                value={eventTitle}
+                onChangeText={(text) => this.setState({ eventTitle: text })}
+              />
+              <TextInput
+                style={styles.textInput}
+                placeholder="Enter event summary"
+                placeholderTextColor="#9ca3af"
+                value={eventSummary}
+                onChangeText={(text) => this.setState({ eventSummary: text })}
+              />
+              <TouchableOpacity
+                style={styles.timeButton}
+                onPress={() => this.setState({ showTimePicker: true, startTimeSelected: true })}
+              >
+                <Text style={styles.timeButtonText}>
+                  Start Time: {selectedStartTime.getHours().toString().padStart(2, '0')}:
+                  {selectedStartTime.getMinutes().toString().padStart(2, '0')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.timeButton}
+                onPress={() => this.setState({ showTimePicker: true, startTimeSelected: false })}
+              >
+                <Text style={styles.timeButtonText}>
+                  End Time: {selectedEndTime.getHours().toString().padStart(2, '0')}:
+                  {selectedEndTime.getMinutes().toString().padStart(2, '0')}
+                </Text>
+              </TouchableOpacity>
+              {showTimePicker && (
+                <DateTimePicker
+                  value={startTimeSelected ? selectedStartTime : selectedEndTime}
+                  mode="time"
+                  is24Hour={true}
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  textColor='#374151'
+                  onChange={(event, date) => {
+                    // this.setState({ showTimePicker: false });
+                    if (date) this.setState(startTimeSelected ? { selectedStartTime: date } : { selectedEndTime: date });
+                  }}
+                />
+              )}
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.cancelButton} onPress={() => this.setState({ isEditModalVisible: false })}>
+                  <Text style={styles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.createButton} onPress={this.updateEvent}>
+                  <Text style={styles.buttonText}>Update</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.removeButton} onPress={this.removeEvent}>
+                  <Text style={styles.buttonText}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </CalendarProvider>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#374151',
+  },
+  textInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    padding: 12,
+    borderRadius: 4,
+    fontSize: 16,
+    marginBottom: 16,
+    color: '#374151',
+  },
+  timeButton: {
+    width: '100%',
+    padding: 12,
+    borderRadius: 4,
+    backgroundColor: '#e5e7eb',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  timeButtonText: {
+    color: '#374151',
+    fontSize: 16,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#e5e7eb',
+    padding: 12,
+    borderRadius: 4,
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  createButton: {
+    flex: 1,
+    backgroundColor: '#3b82f6',
+    padding: 12,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  removeButton: {
+    flex: 1,
+    backgroundColor: '#ef4444',
+    padding: 12,
+    borderRadius: 4,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+});

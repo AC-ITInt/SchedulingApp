@@ -5,7 +5,8 @@ export default function Sidebar() {
   const [prompt, setPrompt] = useState('');
 
   const handleSubmit = async () => {
-    // Add task to your state/store
+    console.log('Task created:', prompt);
+    setPrompt('');
   };
 
   return (
@@ -13,7 +14,8 @@ export default function Sidebar() {
       <Text style={styles.title}>Create a Task</Text>
       <TextInput
         style={styles.textInput}
-        placeholder="Enter task like 'Meeting with Alex at 3pm tomorrow'"
+        placeholder="Enter task like 'Meeting with Boss at 3pm tomorrow'"
+        placeholderTextColor="#9ca3af"
         value={prompt}
         onChangeText={(text) => setPrompt(text)}
       />
@@ -26,7 +28,6 @@ export default function Sidebar() {
 
 const styles = StyleSheet.create({
   sidebar: {
-    width: 320,
     padding: 24,
     borderRightWidth: 1,
     borderRightColor: '#e5e7eb',
@@ -36,6 +37,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 6,
     elevation: 3, // For Android shadow
+    marginBottom: 16,
   },
   title: {
     fontSize: 20,
