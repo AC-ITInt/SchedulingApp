@@ -18,11 +18,11 @@ const getDate = (offset = 0) => {
 };
 
 // Sample events
-const timelineEvents = [
-  { start: `${getDate(-1)} 09:20:00`, end: `${getDate(-1)} 13:00:00`, title: 'Merge Request', summary: 'React Native Calendars' },
-  { start: `${getDate()} 09:15:00`, end: `${getDate()} 10:30:00`, title: 'Meeting A', summary: 'Summary for meeting A', color: EVENT_COLOR },
-  { start: `${getDate()} 09:30:00`, end: `${getDate()} 10:30:00`, title: 'Meeting B', summary: 'Summary for meeting B', color: EVENT_COLOR },
-  { start: `${getDate()} 10:40:00`, end: `${getDate()} 11:10:00`, title: 'Meeting D', summary: 'Summary for meeting D', color: EVENT_COLOR },
+export const timelineEvents = [
+  { start: `${getDate()} 09:20:00`, end: `${getDate()} 13:00:00`, title: 'Merge Request', summary: 'React Native Calendars' },
+  { start: `${getDate(+1)} 09:15:00`, end: `${getDate(+1)} 10:30:00`, title: 'Meeting A', summary: 'Summary for meeting A', color: EVENT_COLOR },
+  { start: `${getDate(+1)} 09:30:00`, end: `${getDate(+1)} 10:30:00`, title: 'Meeting B', summary: 'Summary for meeting B', color: EVENT_COLOR },
+  { start: `${getDate(+1)} 10:40:00`, end: `${getDate(+1)} 11:10:00`, title: 'Meeting D', summary: 'Summary for meeting D', color: EVENT_COLOR },
 ];
 
 // Group events by date

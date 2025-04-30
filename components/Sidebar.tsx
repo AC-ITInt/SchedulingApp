@@ -1,43 +1,138 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Dimensions, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { timelineEvents } from './CalendarView';
+
+const { width } = Dimensions.get('window');
+const DRAWER_WIDTH = Math.min(320, width * 0.8);
 
 export default function Sidebar() {
   const [prompt, setPrompt] = useState('');
+  const [open, setOpen] = useState(false);
+  const translateX = useState(new Animated.Value(DRAWER_WIDTH))[0]; // Start off-screen right
+  const router = useRouter();
+
+  const openDrawer = () => {
+    setOpen(true);
+    Animated.timing(translateX, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const closeDrawer = () => {
+    Animated.timing(translateX, {
+      toValue: DRAWER_WIDTH,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => setOpen(false));
+  };
 
   const handleSubmit = async () => {
     console.log('Task created:', prompt);
-    setPrompt('');
+    router.push({
+        pathname: '/create-task',
+        params: { prompt, timelineEvents: encodeURIComponent(JSON.stringify(timelineEvents)) },
+      }
+    );
+      
+    // setPrompt('');
+    // closeDrawer();
   };
 
   return (
-    <View style={styles.sidebar}>
-      <Text style={styles.title}>Create a Task</Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder="Enter task like 'Meeting with Boss at 3pm tomorrow'"
-        placeholderTextColor="#9ca3af"
-        value={prompt}
-        onChangeText={(text) => setPrompt(text)}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Create Task</Text>
+    <>
+      <TouchableOpacity style={styles.drawerToggle} onPress={openDrawer}>
+        <Text style={styles.toggleText}>☰</Text>
       </TouchableOpacity>
-    </View>
+      {open && (
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={closeDrawer} />
+      )}
+      <Animated.View style={[styles.drawer, { transform: [{ translateX }] }]}>
+        <View>
+          <Text style={styles.title}>Create a Task</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Enter task like 'Meeting with Boss at 3pm tomorrow'"
+            placeholderTextColor="#9ca3af"
+            value={prompt}
+            onChangeText={setPrompt}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+            <Text style={styles.buttonText}>Create Task</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Upcoming Events</Text>
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={true} persistentScrollbar={true}>
+            {timelineEvents
+            .filter(event => {
+              const now = new Date();
+              const eventStart = new Date(event.start);
+              return eventStart > now && eventStart - now <= 24 * 60 * 60 * 1000;
+            })
+            .map((event, index) => (
+              <View key={index} style={{ marginBottom: 8, padding: 8, backgroundColor: '#e5e7eb', borderRadius: 4 }}>
+              <Text style={{ marginBottom: 8, color: '#374151' }}>
+                {event.title} {"\n"}{event.start} to {event.end}
+              </Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+        <View>
+          <TouchableOpacity style={[styles.button, {alignSelf: 'flex-end'}]} onPress={closeDrawer}>
+            <Text style={styles.buttonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+        {/* <TouchableOpacity onPress={closeDrawer} style={{ position: 'absolute', bottom: 150, left: 16 }}>
+          <Text style={{ color: '#3b82f6', fontSize: 16 }}>Close</Text>
+        </TouchableOpacity> */}
+      </Animated.View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  sidebar: {
-    padding: 24,
+  drawerToggle: {
+    position: 'absolute',
+    top: 10,
+    right: 16,
+    zIndex: 100,
+    borderRadius: 20,
+    padding: 8,
+    elevation: 4,
+  },
+  toggleText: {
+    color: '#000',
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    zIndex: 9998,
+  },
+  drawer: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: DRAWER_WIDTH,
+    backgroundColor: '#f9fafb',
     borderRightWidth: 1,
     borderRightColor: '#e5e7eb',
-    backgroundColor: '#f9fafb',
+    padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3, // For Android shadow
-    marginBottom: 16,
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 9999,
+    justifyContent: 'space-between',
+    display: 'flex',
+    height: '100%',
   },
   title: {
     fontSize: 20,
@@ -60,6 +155,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 4,
     alignItems: 'center',
+    marginBottom: 16,
   },
   buttonText: {
     color: '#fff',
