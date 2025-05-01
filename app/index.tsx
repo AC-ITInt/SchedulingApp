@@ -5,14 +5,12 @@ import Sidebar from '@/components/Sidebar';
 
 export default function App() {
   return (
-    <View>
-      <View style={styles.container}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', margin: 16, color: '#374151', textAlign: 'center' }}>
-          Schedule App
-        </Text>
-        <Sidebar />
-        <CalendarView />
-      </View>
+    <View style={styles.container}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', margin: 16, color: '#374151', textAlign: 'center' }}>
+        Schedule App
+      </Text>
+      <Sidebar />
+      <CalendarView />
     </View>
   );
 }
@@ -23,7 +21,7 @@ const styles = StyleSheet.create({
     display: 'flex', //Flex: 1 is not working in expo go
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height - 55,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#fff',
   },
   mainContent: {
     padding: 16,

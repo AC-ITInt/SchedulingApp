@@ -1,7 +1,18 @@
+// Sidebar.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Dimensions, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  Dimensions,
+  ScrollView,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import { timelineEvents } from './CalendarView';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
 
 const { width } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.min(320, width * 0.8);
@@ -9,8 +20,13 @@ const DRAWER_WIDTH = Math.min(320, width * 0.8);
 export default function Sidebar() {
   const [prompt, setPrompt] = useState('');
   const [open, setOpen] = useState(false);
-  const translateX = useState(new Animated.Value(DRAWER_WIDTH))[0]; // Start off-screen right
+  const translateX = useState(new Animated.Value(DRAWER_WIDTH))[0];
   const router = useRouter();
+
+  // 1) pull eventsByDate from redux
+  const eventsByDate = useSelector((state: RootState) => state.events.eventsByDate);
+  // 2) flatten into a single array
+  const timelineEvents = Object.values(eventsByDate).flat();
 
   const openDrawer = () => {
     setOpen(true);
@@ -29,17 +45,28 @@ export default function Sidebar() {
     }).start(() => setOpen(false));
   };
 
-  const handleSubmit = async () => {
-    console.log('Task created:', prompt);
+  const handleSubmit = () => {
+    // send redux events instead of imported ones
     router.push({
-        pathname: '/create-task',
-        params: { prompt, timelineEvents: encodeURIComponent(JSON.stringify(timelineEvents)) },
-      }
-    );
-      
-    // setPrompt('');
-    // closeDrawer();
+      pathname: '/create-task',
+      params: {
+        prompt,
+        timelineEvents: encodeURIComponent(JSON.stringify(timelineEvents)),
+      },
+    });
+    closeDrawer();
   };
+
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    })}`;
+  };
+
+  const now = Date.now();
+  const in24h = 24 * 60 * 60 * 1000;
 
   return (
     <>
@@ -63,32 +90,47 @@ export default function Sidebar() {
             <Text style={styles.buttonText}>Create Task</Text>
           </TouchableOpacity>
         </View>
+
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>Upcoming Events</Text>
-          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={true} persistentScrollbar={true}>
+          <ScrollView
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator
+            persistentScrollbar
+          >
             {timelineEvents
-            .filter(event => {
-              const now = new Date();
-              const eventStart = new Date(event.start);
-              return eventStart > now && eventStart - now <= 24 * 60 * 60 * 1000;
-            })
-            .map((event, index) => (
-              <View key={index} style={{ marginBottom: 8, padding: 8, backgroundColor: '#e5e7eb', borderRadius: 4 }}>
-              <Text style={{ marginBottom: 8, color: '#374151' }}>
-                {event.title} {"\n"}{event.start} to {event.end}
-              </Text>
-              </View>
-            ))}
+              .filter(ev => {
+                const start = new Date(ev.start).getTime();
+                return start > now && start - now <= in24h;
+              })
+              .map((ev, i) => (
+                <View
+                  key={i}
+                  style={{
+                    marginBottom: 8,
+                    padding: 8,
+                    backgroundColor: '#e5e7eb',
+                    borderRadius: 4,
+                  }}
+                >
+                  <Text style={{ marginBottom: 8, color: '#374151' }}>
+                    {ev.title}
+                    {'\n'}
+                    {formatDateTime(ev.start)}
+                  </Text>
+                </View>
+              ))}
           </ScrollView>
         </View>
+
         <View>
-          <TouchableOpacity style={[styles.button, {alignSelf: 'flex-end'}]} onPress={closeDrawer}>
+          <TouchableOpacity
+            style={[styles.button, { alignSelf: 'flex-end' }]}
+            onPress={closeDrawer}
+          >
             <Text style={styles.buttonText}>Close</Text>
           </TouchableOpacity>
         </View>
-        {/* <TouchableOpacity onPress={closeDrawer} style={{ position: 'absolute', bottom: 150, left: 16 }}>
-          <Text style={{ color: '#3b82f6', fontSize: 16 }}>Close</Text>
-        </TouchableOpacity> */}
       </Animated.View>
     </>
   );
@@ -131,7 +173,6 @@ const styles = StyleSheet.create({
     elevation: 8,
     zIndex: 9999,
     justifyContent: 'space-between',
-    display: 'flex',
     height: '100%',
   },
   title: {

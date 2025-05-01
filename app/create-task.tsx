@@ -8,24 +8,31 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-// import the global timelineEvents
-import { timelineEvents } from '../components/CalendarView';
+import { connect } from 'react-redux';
+import { addEvent } from '../store/eventsSlice';
+import { create } from 'react-test-renderer';
+
 
 interface TaskEvent {
-  title: string;
-  summary: string;
-  start: string;
-  end: string;
+    id: string;
+    title: string;
+    summary: string;
+    start: string;
+    end: string;
+    color?: string;
 }
 
-export default function CreateTaskScreen() {
+export function CreateTaskScreen(props) {
   const { prompt } = useLocalSearchParams();
+  const eventsByDate = props.eventsByDate || {};
+  const timelineEvents = Object.values(eventsByDate).flat();
   // use the imported timelineEvents directly
   const initialEvents: TaskEvent[] = Array.isArray(timelineEvents)
-    ? timelineEvents
+    ? (timelineEvents as TaskEvent[])
     : [];
   const [events, setEvents] = useState<TaskEvent[]>(initialEvents);
   const [loading, setLoading] = useState(true);
@@ -54,7 +61,16 @@ export default function CreateTaskScreen() {
         );
         const data = await res.json();
         if (res.ok && Array.isArray(data)) {
-          setEvents(data);
+            var i = 0;
+            const mapped: TaskEvent[] = data.map((e: any) => ({
+                id: Date.now().toString() + i++,
+                title: e.title,
+                summary: e.summary,
+                start: e.start,
+                end: e.end,
+                color: e.color || 'lightblue',
+              }));
+              setEvents(mapped);
         } else {
           throw new Error(data.error || 'Failed to fetch events');
         }
@@ -120,15 +136,28 @@ export default function CreateTaskScreen() {
         <Button title="Cancel" onPress={() => router.back()} />
         <Button
           title="Confirm"
-          onPress={() => {
-            // you could POST the edited `events` back to your API here
-            router.replace('/');
+          onPress={() => {            
+            events.forEach((event) => {
+                props.addEvent(event);
+                }
+            );
+            router.back();
           }}
         />
       </View>
     </ScrollView>
   );
 }
+
+const mapStateToProps = (state) => ({
+  eventsByDate: state.events.eventsByDate,
+});
+
+const mapDispatchToProps = {
+  addEvent
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(CreateTaskScreen);
 
 const styles = StyleSheet.create({
   container: { padding: 16 },

@@ -1,7 +1,9 @@
-import { Slot, useRouter } from 'expo-router';
+import { Slot, Stack, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, StatusBar, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Provider } from 'react-redux';
+import { store } from '../store';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -35,18 +37,26 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Slot />
-      {checkingAuth && (
-        <View style={{
-          ...StyleSheet.absoluteFillObject,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: 'rgba(255,255,255,0.7)'
-        }}>
-          <ActivityIndicator size="large" />
-        </View>
-      )}
-    </View>
+    <Provider store={store}>
+      <View style={{ flex: 1 }}>
+        <StatusBar barStyle="dark-content" />
+        <Stack>
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="create-account" options={{ headerShown: false }} />
+          <Stack.Screen name="index" options={{ title: 'Schedule App', headerShown: false }} />
+          <Stack.Screen name="create-task" options={{ title: 'Create Task' }} />
+        </Stack>
+        {checkingAuth && (
+          <View style={{
+            ...StyleSheet.absoluteFillObject,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#fff'
+          }}>
+            <ActivityIndicator size="large" />
+          </View>
+        )}
+      </View>
+    </Provider>
   );
 }
