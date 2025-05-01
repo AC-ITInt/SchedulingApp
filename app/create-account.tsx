@@ -3,13 +3,12 @@ import React, { useState } from 'react';
 import {
   View,
   TextInput,
-  Button,
   Text,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter, Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 export default function CreateAccountScreen() {
   const router = useRouter();
@@ -52,6 +51,7 @@ export default function CreateAccountScreen() {
         autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
+        placeholderTextColor={'#999'}
       />
       <TextInput
         style={styles.input}
@@ -59,15 +59,16 @@ export default function CreateAccountScreen() {
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+        placeholderTextColor={'#999'}
       />
-      <Button title="Create Account" onPress={handleCreate} />
+      <TouchableOpacity style={styles.button} onPress={handleCreate}>
+        <Text style={styles.buttonText}>Create Account</Text>
+      </TouchableOpacity>
       <View style={styles.footer}>
         <Text>Already have an account? </Text>
-        <Link href="/login" asChild>
-          <TouchableOpacity>
-            <Text style={styles.link}>Log In</Text>
-          </TouchableOpacity>
-        </Link>
+        <TouchableOpacity onPress={() => {router.back()}}>
+          <Text style={{color: 'blue'}}>Log In</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -85,5 +86,17 @@ const styles = StyleSheet.create({
   },
   error: { color: 'red', marginBottom: 12, textAlign: 'center' },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
-  link: { color: '#0066cc', fontWeight: '500' },
+  button: {
+    width: '100%',
+    backgroundColor: '#3b82f6',
+    padding: 12,
+    borderRadius: 4,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
 });

@@ -1,6 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { Alert } from 'react-native';
 import { CalendarUtils } from 'react-native-calendars';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Helper to get formatted date
 const getDate = (offset = 0) => {
@@ -47,7 +48,7 @@ const initialEvents = [
 ];
 
 // Group events by date string (YYYY-MM-DD)
-const groupByDate = (events) =>
+const groupByDate = (events: typeof initialEvents) =>
   events.reduce((acc, event) => {
     const date = event.start.split(' ')[0];
     if (!acc[date]) acc[date] = [];
@@ -57,7 +58,38 @@ const groupByDate = (events) =>
 
 const initialState = {
   eventsByDate: groupByDate(initialEvents),
+  loaded: false,
 };
+
+// Save events to AsyncStorage
+const saveEventsToStorage = async (eventsByDate: any) => {
+  try {
+    await AsyncStorage.setItem('eventsByDate', JSON.stringify(eventsByDate));
+  } catch (e) {
+    console.error('Failed to save events:', e);
+  }
+};
+
+// Load events from AsyncStorage (or use initialEvents if not present)
+export const loadEventsFromStorage = createAsyncThunk(
+  'events/loadEventsFromStorage',
+  async (_, thunkAPI) => {
+    try {
+      const stored = await AsyncStorage.getItem('eventsByDate');
+      if (stored) {
+        return JSON.parse(stored);
+      } else {
+        // Save initial events if not present
+        const grouped = groupByDate(initialEvents);
+        await AsyncStorage.setItem('eventsByDate', JSON.stringify(grouped));
+        return grouped;
+      }
+    } catch (e) {
+      console.error('Failed to load events:', e);
+      return groupByDate(initialEvents);
+    }
+  }
+);
 
 const eventsSlice = createSlice({
   name: 'events',
@@ -65,13 +97,14 @@ const eventsSlice = createSlice({
   reducers: {
     setEventsByDate(state, action: PayloadAction<Record<string, typeof initialEvents>>) {
       state.eventsByDate = action.payload;
+      saveEventsToStorage(state.eventsByDate);
     },
     addEvent(state, action: PayloadAction<any>) {
       const event = action.payload;
-      Alert.alert(event.title, 'Task created successfully!');
       const date = event.start.split(' ')[0];
       if (!state.eventsByDate[date]) state.eventsByDate[date] = [];
       state.eventsByDate[date].push(event);
+      saveEventsToStorage(state.eventsByDate);
     },
     updateEvent(state, action: PayloadAction<any>) {
       const event = action.payload;
@@ -79,11 +112,19 @@ const eventsSlice = createSlice({
       state.eventsByDate[date] = state.eventsByDate[date].map(e =>
         e.id === event.id ? event : e
       );
+      saveEventsToStorage(state.eventsByDate);
     },
     removeEvent(state, action: PayloadAction<{ id: string; date: string }>) {
       const { id, date } = action.payload;
       state.eventsByDate[date] = state.eventsByDate[date].filter(e => e.id !== id);
+      saveEventsToStorage(state.eventsByDate);
     },
+  },
+  extraReducers: builder => {
+    builder.addCase(loadEventsFromStorage.fulfilled, (state, action) => {
+      state.eventsByDate = action.payload;
+      state.loaded = true;
+    });
   },
 });
 

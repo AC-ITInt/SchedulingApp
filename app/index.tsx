@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, Text, Dimensions } from 'react-native';
 import CalendarView from '@/components/CalendarView';
 import Sidebar from '@/components/Sidebar';
+import { useDispatch } from 'react-redux';
+import { loadEventsFromStorage } from '../store/eventsSlice';
+import type { AppDispatch } from '../store';
 
 export default function App() {
+  const dispatch = useDispatch<AppDispatch>();
+
+  useEffect(() => {
+    dispatch(loadEventsFromStorage());
+  }, [dispatch]);
+
   return (
     <View style={styles.container}>
       <Text style={{ fontSize: 24, fontWeight: 'bold', margin: 16, color: '#374151', textAlign: 'center' }}>
-        Schedule App
+        Tasker
       </Text>
       <Sidebar />
       <CalendarView />
@@ -22,8 +31,5 @@ const styles = StyleSheet.create({
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height - 55,
     backgroundColor: '#fff',
-  },
-  mainContent: {
-    padding: 16,
   },
 });

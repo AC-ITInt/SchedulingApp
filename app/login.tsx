@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import {
   View,
   TextInput,
-  Button,
   Text,
   StyleSheet,
   TouchableOpacity,
@@ -54,6 +53,7 @@ export default function LoginScreen() {
         autoCapitalize="none"
         value={email}
         onChangeText={setEmail}
+        placeholderTextColor={'#999'}
       />
       <TextInput
         style={styles.input}
@@ -61,23 +61,33 @@ export default function LoginScreen() {
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+        placeholderTextColor={'#999'}
       />
-      <Button title="Log In" onPress={handleLogin} />
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Log In</Text>
+      </TouchableOpacity>
       <View style={styles.footer}>
         <Text>Don't have an account? </Text>
-        <Link href="/create-account" asChild>
-          <TouchableOpacity>
-            <Text style={styles.link}>Sign Up</Text>
+          <TouchableOpacity onPress={() => {router.push('/create-account')}}>
+            <Text style={{color: 'blue'}}>Sign Up</Text>
           </TouchableOpacity>
-        </Link>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: 'center', backgroundColor: '#f9fafb' },
-  title: { fontSize: 28, marginBottom: 16, textAlign: 'center' },
+  container: {
+    flex: 1, 
+    padding: 24, 
+    justifyContent: 'center', 
+    backgroundColor: '#f9fafb' 
+  },
+  title: { 
+    fontSize: 28, 
+    marginBottom: 16, 
+    textAlign: 'center' 
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -85,7 +95,27 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 12,
   },
-  error: { color: 'red', marginBottom: 12, textAlign: 'center' },
-  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
-  link: { color: '#0066cc', fontWeight: '500' },
+  error: { 
+    color: 'red', 
+    marginBottom: 12, 
+    textAlign: 'center' 
+  },
+  footer: { 
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    marginTop: 16 
+  },
+  button: {
+    width: '100%',
+    backgroundColor: '#3b82f6',
+    padding: 12,
+    borderRadius: 4,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
 });

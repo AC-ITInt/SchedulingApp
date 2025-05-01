@@ -47,14 +47,18 @@ export default function Sidebar() {
 
   const handleSubmit = () => {
     // send redux events instead of imported ones
-    router.push({
-      pathname: '/create-task',
-      params: {
-        prompt,
-        timelineEvents: encodeURIComponent(JSON.stringify(timelineEvents)),
-      },
-    });
-    closeDrawer();
+    if (!prompt) {
+      alert('Please enter a task description');
+    } else {
+      router.push({
+        pathname: '/create-task',
+        params: {
+          prompt,
+          timelineEvents: encodeURIComponent(JSON.stringify(timelineEvents)),
+        },
+      });
+      closeDrawer();
+    }
   };
 
   const formatDateTime = (dateString: string) => {
@@ -66,7 +70,7 @@ export default function Sidebar() {
   };
 
   const now = Date.now();
-  const in24h = 24 * 60 * 60 * 1000;
+  const in32h = 32 * 60 * 60 * 1000;
 
   return (
     <>
@@ -101,7 +105,7 @@ export default function Sidebar() {
             {timelineEvents
               .filter(ev => {
                 const start = new Date(ev.start).getTime();
-                return start > now && start - now <= in24h;
+                return start > now && start - now <= in32h;
               })
               .map((ev, i) => (
                 <View
@@ -125,7 +129,16 @@ export default function Sidebar() {
 
         <View>
           <TouchableOpacity
-            style={[styles.button, { alignSelf: 'flex-end' }]}
+            style={[styles.button, { backgroundColor: '#bbb' }]}
+            onPress={() => {
+              router.push('/settings');
+              closeDrawer();
+            }}
+          >
+            <Text style={styles.buttonText}>Settings</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button]}
             onPress={closeDrawer}
           >
             <Text style={styles.buttonText}>Close</Text>
