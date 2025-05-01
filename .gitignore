@@ -36,3 +36,5 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+php_backend/config/.env
+php_backend/config/DB_CONN.php

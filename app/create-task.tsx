@@ -14,7 +14,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { connect } from 'react-redux';
 import { addEvent } from '../store/eventsSlice';
-import { create } from 'react-test-renderer';
 
 
 interface TaskEvent {
