@@ -141,7 +141,7 @@ export default function TimelineCalendarScreen() {
 
   return (
     <CalendarProvider date={currentDate} onDateChanged={handleDateChange} showTodayButton>
-      <ExpandableCalendar firstDay={1} markedDates={markedDates} />
+      <ExpandableCalendar firstDay={1} markedDates={markedDates} style={{backgroundColor: 'red', elevation:300}}/>
       <TimelineList
         key={JSON.stringify(eventsByDate)}
         events={eventsByDate}

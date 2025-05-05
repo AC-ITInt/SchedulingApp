@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, Text, Dimensions } from 'react-native';
-import CalendarView from '@/components/CalendarView';
+import CalendarView from '@/components/NewCalendarView';
 import Sidebar from '@/components/Sidebar';
 import { useDispatch } from 'react-redux';
 import { loadEventsFromStorage } from '../store/eventsSlice';
